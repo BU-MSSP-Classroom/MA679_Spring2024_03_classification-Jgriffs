@@ -1,7 +1,9 @@
 ---
 title: "Classification"
 date: "2023-01-02"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -225,60 +227,93 @@ Q1. What metric will you use? Why?
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+#basic
+Model0<-glm(data=Train_COVID,SURVIVED_bin ~ 1,family = "binomial")
+
+#age seems important, as demonstrated toward the top of the doc
+Model1<-glm(data=Train_COVID,SURVIVED_bin ~ AGE_TRUNK,family = "binomial")
+
+#admit
+ggplot(Train_COVID,aes(PATIENT_TYPE))+geom_histogram() ###admit/not admit too
+
+##age + admit + other things that seem to be risk factors
+Model2<-glm(data=Train_COVID,SURVIVED_bin ~ OBESITY + ASTHMA + AGE_TRUNK + COPD + PATIENT_TYPE + FEMALE + MEDICAL_UNIT,family = "binomial")
+
+Model3<-glm(data=Train_COVID,SURVIVED_bin ~ + ASTHMA + AGE_TRUNK + PATIENT_TYPE + FEMALE + MEDICAL_UNIT,family = "binomial")
+
+
+###summaries
+summary(Model0)
+summary(Model1)
+summary(Model2)
+summary(Model3)
+
+
+suppressPackageStartupMessages(library(arm))
+
+###plots
+binnedplot(predict(Model1,type="response"),resid(Model1,type="response" ))
+binnedplot(predict(Model2,type="response"),resid(Model2,type="response" ))
+binnedplot(predict(Model3,type="response"),resid(Model3,type="response" ))
+
 ```
 
-Your answer:
+
+Your answer: I will choose age, sex, and admit status, along with some various health factors.
 
 ~~~
 Please write your answer in full sentences.
-
 
 ~~~
 
 Q2. What was your best performing model?  
 
 Your code:
-```{r,echo=TRUE}
-#
-#
+###Confusion matrix and ROC?
+```{r,echo=show_code}
+
+#Model2
+lgMod2<- predict(Model2,Covid_Data,type="response")
+Pred2<- ifelse(lgMod2 > 0.5,1,0)
+Confuse2<-table(Covid_Data$SURVIVED_bin,Pred2)
+Confuse2
+
+library(pROC)
+roc_scoreMod2=roc(Covid_Data$SURVIVED_bin, lgMod2) #AUC score
+plot(roc_scoreMod2, main ="Mod2 ROC")
+
+
+#Model3
+lgMod3<- predict(Model3,Covid_Data,type="response")
+Pred3<- ifelse(lgMod3 > 0.5,1,0)
+Confuse3<-table(Covid_Data$SURVIVED_bin,Pred3)
+Confuse3
+
+roc_scoreMod3=roc(Covid_Data$SURVIVED_bin, lgMod3) #AUC score
+plot(roc_scoreMod3, main ="Mod3 ROC")
 ```
 
 Your answer:
 
+Model 2 and 3 performed fairly well and pretty close to each other. 
+
 ~~~
 Please write your answer in full sentences.
-
 
 ~~~
 
 Q3. Explain how you got the model in detail.
 
-
-Your code:
-```{r,echo=TRUE}
-#
-#
-```
-
-Your answer:
+Your answer: I chose age and admit, since they seemed obviously related, and a handful of other health factors that I thought (based on news and personal experience) were risk factors for covid hospitalization/severity. These additional health factors did not seem to matter much because when I removed them, the resulting model performed just about the same.
 
 ~~~
 Please write your answer in full sentences.
-
 
 ~~~
 
 Q4. Based on your model, what factor seems to be important in deciding if a patient survives or not.
 
-Your code:
-```{r,echo=TRUE}
-#
-#
-```
-
-Your answer:
+Your answer: Patient type, age, and hospitalization type seem to be most important.
 
 ~~~
 Please write your answer in full sentences.
@@ -296,11 +331,15 @@ In this problem, you will develop a model to predict whether a given car gets hi
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+library(ISLR)
+Auto<-ISLR::Auto
+
+mpgmedian<-median(Auto$mpg,na.rm = TRUE)
+Auto$mpg01<-ifelse(Auto$mpg > mpgmedian,1,0)
+
 ```
 
-Your answer:
+Your answer: Please see above.
 
 ~~~
 Please write your answer in full sentences.
@@ -311,20 +350,30 @@ Please write your answer in full sentences.
 
 (b) Explore the data graphically in order to investigate the association between `mpg01` and the other features. Which other features seem most likely to be useful in predicting `mpg01`? Scatterplots and boxplots may be useful tools to answer this question. Describe your findings.
 
+```{r}
+###cylinders
+ggplot(Auto,aes(cylinders,mpg))+geom_boxplot(aes(group=cylinders))+geom_hline(yintercept = mpgmedian)
+
+###horsepower
+ggplot(Auto,aes(horsepower,mpg))+geom_point(aes(color="Pink"))+geom_hline(yintercept = mpgmedian)
+
+###weight
+ggplot(Auto,aes(weight,mpg))+geom_point(aes(color=cylinders))+geom_hline(yintercept = mpgmedian)
+
+```
+
 (c) Split the data into a training set and a test set.
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+Train_Auto<-slice_sample(Auto,n=98)
+Test_Auto<-anti_join(Auto,Train_Auto)
 ```
 
-Your answer:
+Your answer: Split using slice sample and anti join. 75 percent in train, 25 percent in test.
 
 ~~~
 Please write your answer in full sentences.
-
-
 ~~~
 
 
@@ -332,11 +381,14 @@ Please write your answer in full sentences.
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+
+LDA_MPG1<-lda(mpg01~horsepower+weight+cylinders,data=Train_Auto)##subset part wasnt working?
+LDA_MPG1
+
+###b)not sure about the test error
 ```
 
-Your answer:
+Your answer: See above please.
 
 ~~~
 Please write your answer in full sentences.
@@ -349,11 +401,11 @@ Please write your answer in full sentences.
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+qda_MPG <- qda(mpg01~horsepower+weight+cylinders,data=Train_Auto)
+qda_MPG
 ```
 
-Your answer:
+Your answer: Please see above.
 
 ~~~
 Please write your answer in full sentences.
@@ -366,11 +418,19 @@ Please write your answer in full sentences.
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+MPG01GLM<-glm(mpg01~horsepower+weight+cylinders,data=Train_Auto,family="binomial")
+
+PREDS<-predict(MPG01GLM,Test_Auto,type = "response")
+
+PREDS<-as.data.frame(PREDS)
+
+PREDS$MPG01<-ifelse(PREDS$PREDS > mpgmedian,1,0)
+
+###test error = 100%?
+
 ```
 
-Your answer:
+Your answer:Not sure what happened here. Looks like MPGs were way underestimated?
 
 ~~~
 Please write your answer in full sentences.
@@ -383,11 +443,14 @@ Please write your answer in full sentences.
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+library(e1071)
+
+AutoBayes<- naiveBayes(mpg01~horsepower+weight+cylinders,data=Train_Auto)
+
+AutoBayes
 ```
 
-Your answer:
+Your answer:I don't think I understand this. I can make the code work (somewhat) but don't fully understand. Would be useful to go over in class. I know we haven't quite covered yet.
 
 ~~~
 Please write your answer in full sentences.
@@ -400,11 +463,14 @@ Please write your answer in full sentences.
 
 Your code:
 ```{r,echo=TRUE}
-#
-#
+library(class)
+set.seed(42)
+# train.direction=Direction(Auto$mpg)
+# KNN_Auto<- knn(Train_Auto,Test_Auto, train.Direction, k = 1)
+
 ```
 
-Your answer:
+Your answer: I don't quite understand how to do this. I looked at the lab file but can't figure how it translates.
 
 ~~~
 Please write your answer in full sentences.
