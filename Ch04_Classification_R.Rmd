@@ -338,13 +338,10 @@ mpgmedian<-median(Auto$mpg,na.rm = TRUE)
 Auto$mpg01<-ifelse(Auto$mpg > mpgmedian,1,0)
 
 ```
-
 Your answer: Please see above.
 
 ~~~
 Please write your answer in full sentences.
-
-
 ~~~
 
 
@@ -385,16 +382,16 @@ Your code:
 LDA_MPG1<-lda(mpg01~horsepower+weight+cylinders,data=Train_Auto)##subset part wasnt working?
 LDA_MPG1
 
-###b)not sure about the test error
+
+Error_Auto<-predict(LDA_MPG1,newdata = Test_Auto)
+
+#b)
+
+Error_Rate_Auto<- mean(Error_Auto$class!=Test_Auto$mpg01)
+
 ```
 
-Your answer: See above please.
-
-~~~
-Please write your answer in full sentences.
-
-
-~~~
+Your answer: .1054 is the error rate using LDA.
 
 
 (e) Perform QDA on the training data in order to predict `mpg01` using the variables that seemed most associated with `mpg01` in (b). What is the test error of the model obtained?
@@ -403,44 +400,80 @@ Your code:
 ```{r,echo=TRUE}
 qda_MPG <- qda(mpg01~horsepower+weight+cylinders,data=Train_Auto)
 qda_MPG
+
+QDA_Auto_Error<-predict(qda_MPG,newdata=Test_Auto)
+
+QDA_Error_Rate_Auto<-mean(QDA_Auto_Error$class!=Test_Auto$mpg01)
+
+QDA_Error_Rate_Auto
+
 ```
 
-Your answer: Please see above.
-
-~~~
-Please write your answer in full sentences.
-
-
-~~~
+Your answer: The error rate with QDA is 0.0816
 
 
 (f) Perform logistic regression on the training data in order to predict `mpg01` using the variables that seemed most associated with `mpg01` in (b). What is the test error of the model obtained?
 
 Your code:
+
 ```{r,echo=TRUE}
 MPG01GLM<-glm(mpg01~horsepower+weight+cylinders,data=Train_Auto,family="binomial")
 
-PREDS<-predict(MPG01GLM,Test_Auto,type = "response")
+LR_predict<-predict(MPG01GLM,newdata =Test_Auto,type = "response")
 
-PREDS<-as.data.frame(PREDS)
+LR_predict<-as.data.frame(LR_predict)
 
-PREDS$MPG01<-ifelse(PREDS$PREDS > mpgmedian,1,0)
+LR_predict$MPG01_class_predict<-ifelse(LR_predict$LR_predict > mpgmedian,1,0)
 
-###test error = 100%?
+###Error
 
+LR_Error_Rate_Auto<-mean(PREDS$class!=Test_Auto$mpg01)
+
+LR_Error_Rate_Auto
+
+#-------------------------------------------------------------
+
+MPG01GLM_2<-glm(mpg01~horsepower,data=Train_Auto,family="binomial")
+
+LR2_predict<-predict(MPG01GLM_2,newdata =Test_Auto,type="response")
+
+LR2_predict<-as.data.frame(LR2_predict)
+
+LR2_predict$class_predict<-ifelse(LR2_predict$LR2_predict > mpgmedian,1,0)
+
+
+#-------------------------------------------------------------
+
+MPG_Null<-glm(mpg01~1,data=Train_Auto,family="binomial")
+
+Null_Predict_Data<-predict(MPG_Null,newdata=Train_Auto,type="response")
+
+Null_Predict_Data<-as.data.frame(Null_Predict_Data)
+
+Null_Predict_Data$Class_predict<-ifelse(Null_Predict_Data$Null_Predict_Data > mpgmedian,1,0)
+
+unique(Null_Predict_Data$Class_predict)
+
+```
+
+```{r}
+summary(LR2_predict)
+summary(LR_predict)
+summary(Null_Predict_Data)
+
+summary(LR_predict)
+summary(LR2_predict)
+summary(MPG_Null)
 ```
 
 Your answer:Not sure what happened here. Looks like MPGs were way underestimated?
 
-~~~
-Please write your answer in full sentences.
-
-
-~~~
-
 
 (g) Perform naive Bayes on the training data in order to predict `mpg01` using the variables that seemed most associated with `mpg01` in (b). What is the test error of the model obtained?
 
+
+
+###need to do!
 Your code:
 ```{r,echo=TRUE}
 library(e1071)
@@ -451,6 +484,10 @@ AutoBayes
 ```
 
 Your answer:I don't think I understand this. I can make the code work (somewhat) but don't fully understand. Would be useful to go over in class. I know we haven't quite covered yet.
+###!
+
+
+
 
 ~~~
 Please write your answer in full sentences.
