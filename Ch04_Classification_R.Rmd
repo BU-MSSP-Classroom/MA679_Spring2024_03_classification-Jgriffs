@@ -422,8 +422,8 @@ MPG01GLM<-glm(mpg01~horsepower+weight+cylinders,data=Train_Auto,family="binomial
 LR_predict<-predict(MPG01GLM,newdata =Test_Auto,type = "response")
 
 LR_predict<-as.data.frame(LR_predict)
+LR_predict$MPG01_class_predict<-ifelse(LR_predict$LR_predict > 0.5,1,0)
 
-LR_predict$MPG01_class_predict<-ifelse(LR_predict$LR_predict > mpgmedian,1,0)
 
 ###Error
 
@@ -461,8 +461,8 @@ summary(LR2_predict)
 summary(LR_predict)
 summary(Null_Predict_Data)
 
-summary(LR_predict)
-summary(LR2_predict)
+summary(MPG01GLM)
+summary(MPG01GLM_2)
 summary(MPG_Null)
 ```
 
